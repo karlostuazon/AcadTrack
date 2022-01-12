@@ -1,0 +1,144 @@
+{% extends 'base/main.html' %} {% block content %} {% load auth_extras %}
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<style>
+    ul{
+        list-style-type: none;
+        margin: 0;
+        margin-top: 10px;
+        padding: 0;
+        background-color: red;
+    }
+
+    .category{
+        padding: 4px;
+        border: 2px;
+        border-radius: 25px;
+        display: inline;
+        margin-left: 10px;
+        font-size: 15px;
+    }
+
+    a:hover{
+        color: #a8a8a8;
+    }
+
+</style>
+
+<div class="header-bar">
+    <div>
+        <h1><b>AcadTrack</b></h1>
+        <h2>Hi, {{request.user|title}}!</h2>
+        <h3 style="margin:0">You have <i>{{count}}</i> remaining task{{ count|pluralize:"s" }}</h3>
+        <hr>
+        <a href="{% url 'tasks' %}">All Tasks - </a>
+        <a href="{% url 'tasksAssignment' %}">Assignment - </a>
+        <a href="{% url 'tasksExam' %}">Exam - </a>
+        <a href="{% url 'tasksQuiz' %}">Quiz - </a>
+        <a href="{% url 'tasksProject' %}">Project -</a>
+        <a href="{% url 'tasksOther' %}">Other</a>
+    </div>
+    
+    {% for task in tasks %}
+        {% if task.due|timeuntil == 0 and task.complete == False %}
+            <h3>Task Overdue</h3>
+        {% endif %}
+    {% endfor %}
+
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'logout' %}">Logout</a> {% else %}
+    <a href="{% url 'login' %}">Login</a> {% endif %}
+</div>
+
+
+<div id="search-add-wrapper">
+    <form method="GET" style="display: flex;">
+        <input type='text' name='search-area' placeholder="Search" value="{{search_input}}">
+        <input class="button" type="submit" value='Search'>
+    </form>
+    {% if tasks|length > 0 %}
+    <a id="add-link" href="{% url 'task-create' %}">&#x2b;</a>
+    {% endif %}
+</div>
+
+
+<!-- Hidden form. Form submits new item positions -->
+<form style="display: none;" id="reorderForm" method="post" action="{% url 'task-reorder' %}">
+    {% csrf_token %}
+    <input type="hidden" id="positionInput" name="position">
+</form>
+
+
+<div id="tasklist" class="task-items-wrapper">
+    {% for task in tasks %}
+
+    <div class="task-wrapper" data-position="{{task.pk}}">
+        <div class="task-title">
+            {% if task.complete %}
+            <div class="task-complete-icon"></div>
+            <i><s><a href="{% url 'task-update' task.id %}">{{task.title}} - {{task.subject}} </a></s></i> 
+            <span class="category" style="background-color: #bebebe;">{{task.category}}</span>
+            {% else %}
+            <div class="task-incomplete-icon"></div>
+            <a href="{% url 'task-update' task.id %}">{{task.title}} - {{task.subject}}</a> 
+
+            {% if task.category == "Assignment" %}
+            <span class="category" style="background-color: #fdffb6;">{{task.category}}</span>
+            {% elif task.category == "Exam" %}
+            <span class="category" style="background-color: #9bf6ff;">{{task.category}}</span>
+            {% elif task.category == "Quiz" %}
+            <span class="category" style="background-color: #a0c4ff;">{{task.category}}</span>
+            {% elif task.category == "Project" %}
+            <span class="category" style="background-color: #ffadad;">{{task.category}}</span>
+            {% else %}
+            <span class="category" style="background-color: #bebebe;">{{task.category}}</span>
+            {% endif %}
+            
+            {% endif %}
+        </div>
+        <div class="task-controls">
+            {% if task.complete %}
+            {% else %}
+            <span class="timer"><b>Due in:</b> {{ task.due|timeuntil}}</span>
+            {% endif %}
+            <a class="delete-link" href="{% url 'task-delete' task.id %}">&#215;</a>
+            <span class="handle">&nbsp;&#10247;</span>
+        </div>
+    </div>
+
+    {% empty %}
+    <div style="text-align: center; padding-bottom: 10px; line-height: 1em;">
+        <h3>No new entries are created.</h3>
+        <h3>Create a <a style="text-decoration: none; color: #e53935;" href="{% url 'task-create' %}">New Entry</a> ! </h3>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    var taskList = document.getElementById("tasklist");
+    var reorderForm = document.getElementById("reorderForm");
+    var positionInput = document.getElementById("positionInput");
+
+    let sortable = Sortable.create(taskList, {
+        handle: '.handle',
+        ghostClass: 'dropArea',
+        chosenClass: 'selectedTask',
+
+    });
+
+    function reordering() {
+        const rows = document.getElementsByClassName("task-wrapper");
+        let pos = [];
+        for (let row of rows) {
+            pos.push(row.dataset.position);
+        }
+        console.log(pos.join(","))
+        positionInput.value = pos.join(',');
+        reorderForm.submit();
+    }
+
+    document.ondrop = reordering
+</script>
+
+{% endblock content %}

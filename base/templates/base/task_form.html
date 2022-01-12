@@ -1,0 +1,43 @@
+{% extends 'base/main.html' %}
+{% block content %}
+
+<div class="header-bar">
+    <a href="{% url 'tasks' %}">&#8592; Back</a>
+</div>
+
+
+<div class="card-body">
+    <form method="POST" enctype="multipart/form-data" action="">
+        {% csrf_token %}
+        <label>{{form.title.label}}</label>
+        {{form.title}}
+        <label>{{form.subject.label}}</label>
+        {{form.subject}}
+        <label>{{form.category.label}}</label>
+        {{form.category}}
+        <label>{{form.description.label}}</label>
+        {{form.description}}
+
+        {% if not task.files %}
+            <label>{{form.files.label}}</label>
+            {{form.files}}
+        {% else %}
+            <label>Files:</label>
+            {{task.files}} 
+            <a href="{{ task.files.url }}" class="btn btn-primary btn-sm" target="_blank">View</a>
+        {%endif%}
+        <p>(Accepts png, jpg, pdf, docx, and txt files)</p>
+
+        <label>{{form.due.label}}</label>
+        <input type="date" id="due" class="taskDate" name="due">
+
+        <label>{{form.complete.label}}</label>
+        {{form.complete}}
+        <br>
+        <br>
+        <input class="button" type="submit" value="Submit">
+    </form>
+</div>
+
+
+{% endblock content %}
