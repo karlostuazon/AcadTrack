@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-xd$k@2q0a2paqccw1#-k+sdglw6i+dyj%j#sok6nlf0k-9-9kt
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'acadtrack.herokuapp.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'acadtrack.herokuapp.com', 'localhost']
 
 
 # Application definition
